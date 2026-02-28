@@ -58,7 +58,7 @@ def compute_scores(df: pd.DataFrame) -> pd.DataFrame:
     # activity_score: more POIs within 500m = better
     df["activity_score"] = normalize(df["poi_count_500m"])
 
-    # light_score: optional — only scored if Falak's DB includes it
+    # light_score: optional — only scored if home.db includes it
     if "light_pollution_score" in df.columns:
         df["light_score"] = invert(df["light_pollution_score"])
     else:
