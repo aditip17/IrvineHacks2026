@@ -1,1 +1,11 @@
+# venv
 venv/
+
+# macOS
+.DS_Store
+
+# VS Code settings
+.vscode/
+
+# Temporary / cache files
+cache/
