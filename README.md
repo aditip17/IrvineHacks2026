@@ -115,14 +115,14 @@ http://localhost:5173
 The React frontend is deployed on Vercel.
 
 Live URL:
-<br>
+https://irvine-hacks26.vercel.app?_vercel_share=Ne8p9v0LcEkGOkzvurbwjIeLBYKARTHs
 
 ### Backend (Render)
 
 The Python backend is deployed on Render.
 
 API Base URL:
-<br>
+https://neighborhoodfit-api.onrender.com/
 
 ### Deployment Architecture
 
@@ -153,10 +153,6 @@ API Base URL:
 - Orange
 
 ## Future Improvements
-
-- Neighborhood Fit scoring algorithm
-
-- User preference weighting system
 
 - Saved neighborhoods & authentication
 
