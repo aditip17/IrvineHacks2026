@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    background: #ffffff;
+    color: #11472f;
+    font-family: 'Comfortaa', sans-serif;
+    overflow: hidden;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #232840; border-radius: 2px; }
+
+/* ── Mapbox popup ── */
+.mapboxgl-popup-content {
+  background: #12161f !important;
+  border: 1px solid #232840 !important;
+  border-radius: 8px !important;
+  padding: 14px 16px !important;
+  font-family: 'Syne', sans-serif;
+  color: #e8ecf4;
+  min-width: 180px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+}
+.mapboxgl-popup-tip { display: none !important; }
+
+/* ── Range slider base ── */
+input[type='range'] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  background: #232840;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #0b0e14;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+.slider-quiet::-webkit-slider-thumb    { background: #4fffb0; }
+.slider-quiet:hover::-webkit-slider-thumb { box-shadow: 0 0 10px #4fffb0; }
+
+.slider-green::-webkit-slider-thumb   { background: #56cfab; }
+.slider-green:hover::-webkit-slider-thumb { box-shadow: 0 0 10px #56cfab; }
+
+.slider-activity::-webkit-slider-thumb { background: #7b61ff; }
+.slider-activity:hover::-webkit-slider-thumb { box-shadow: 0 0 10px #7b61ff; }
+
+.slider-light::-webkit-slider-thumb   { background: #ffd166; }
+.slider-light:hover::-webkit-slider-thumb { box-shadow: 0 0 10px #ffd166; }
