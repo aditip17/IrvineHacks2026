@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { fetchHomes, fetchRankedHomes } from '../api'
 
 const DEFAULT_WEIGHTS = { quiet: 0.25, green: 0.25, activity: 0.25, light: 0.25 }
@@ -15,25 +15,38 @@ const REGIONS = {
   'Orange, CA':           { center: [-117.853, 33.787], bounds: { minLat: 33.75, maxLat: 33.84, minLon: -117.95, maxLon: -117.77 } },
 }
 
-function filterByRegion(homes, region) {
-  const { bounds } = REGIONS[region] ?? REGIONS['Irvine, CA']
-  return homes.filter(h =>
-    h.lat >= bounds.minLat && h.lat <= bounds.maxLat &&
-    h.lon >= bounds.minLon && h.lon <= bounds.maxLon
-  )
+export const DEFAULT_FILTERS = {
+  minPrice:      '',
+  maxPrice:      '',
+  minBeds:       '',
+  minBaths:      '',
+  propertyType:  'Any',
+  maxDaysOnMarket: '',
+}
+
+function applyFilters(homes, filters) {
+  return homes.filter(h => {
+    if (filters.minPrice      !== '' && (h.price      ?? Infinity) < Number(filters.minPrice))      return false
+    if (filters.maxPrice      !== '' && (h.price      ?? 0)        > Number(filters.maxPrice))      return false
+    if (filters.minBeds       !== '' && (h.beds       ?? 0)        < Number(filters.minBeds))       return false
+    if (filters.minBaths      !== '' && (h.baths      ?? 0)        < Number(filters.minBaths))      return false
+    if (filters.maxDaysOnMarket !== '' && (h.days_on_market ?? Infinity) > Number(filters.maxDaysOnMarket)) return false
+    if (filters.propertyType  !== 'Any' && h.property_type !== filters.propertyType) return false
+    return true
+  })
 }
 
 export function useScoring() {
-  const [allHomes, setAllHomes]       = useState([])   // full 350, never changes
-  const [rankedHomes, setRankedHomes] = useState([])   // full ranked list from backend
+  const [allHomes, setAllHomes]       = useState([])
+  const [rankedHomes, setRankedHomes] = useState([])
   const [weights, setWeights]         = useState(DEFAULT_WEIGHTS)
   const [activeId, setActiveId]       = useState(null)
   const [loading, setLoading]         = useState(true)
   const [region, setRegion]           = useState('Irvine, CA')
   const [homeCount, setHomeCount]     = useState(10)
+  const [filters, setFilters]         = useState(DEFAULT_FILTERS)
   const debounceRef = useRef(null)
 
-  // Load ALL homes once on mount
   useEffect(() => {
     fetchHomes().then(data => {
       setAllHomes(data)
@@ -41,7 +54,6 @@ export function useScoring() {
     })
   }, [])
 
-  // Re-rank whenever weights change (debounced) — backend ranks all 350
   useEffect(() => {
     if (allHomes.length === 0) return
     clearTimeout(debounceRef.current)
@@ -52,39 +64,43 @@ export function useScoring() {
     return () => clearTimeout(debounceRef.current)
   }, [allHomes, weights])
 
-  const updateWeight = useCallback((key, value) => {
-    setWeights(prev => ({ ...prev, [key]: value }))
-  }, [])
+  const updateWeight     = useCallback((key, value) => setWeights(prev => ({ ...prev, [key]: value })), [])
+  const updateRegion     = useCallback((r) => { setRegion(r); setActiveId(null) }, [])
+  const updateHomeCount  = useCallback((n) => setHomeCount(Number(n)), [])
+  const updateFilter     = useCallback((key, value) => setFilters(prev => ({ ...prev, [key]: value })), [])
+  const resetFilters     = useCallback(() => setFilters(DEFAULT_FILTERS), [])
 
-  const updateRegion = useCallback((newRegion) => {
-    setRegion(newRegion)
-    setActiveId(null)
-  }, [])
+  // Derive property types from loaded data
+  const propertyTypes = useMemo(() => {
+    const types = [...new Set(allHomes.map(h => h.property_type).filter(Boolean))]
+    return ['Any', ...types.sort()]
+  }, [allHomes])
 
-  const updateHomeCount = useCallback((count) => {
-    setHomeCount(Number(count))
-  }, [])
+  // 1. Filter by region bounding box
+  const regionBounds = (REGIONS[region] ?? REGIONS['Irvine, CA']).bounds
+  const regionHomes = allHomes.filter(h =>
+    h.lat >= regionBounds.minLat && h.lat <= regionBounds.maxLat &&
+    h.lon >= regionBounds.minLon && h.lon <= regionBounds.maxLon
+  )
 
-  // Homes visible on map = only those in the selected city
-  const homes = filterByRegion(allHomes, region)
+  // 2. Apply listing filters
+  const filteredHomes = applyFilters(regionHomes, filters)
 
-  // Ranked homes for the city = ranked list filtered to city homes, then sliced to homeCount
-  const cityListingIds = new Set(homes.map(h => h.listing_id))
-  const cityRankedHomes = rankedHomes.filter(h => cityListingIds.has(h.listing_id))
+  // 3. Get ranked list for filtered homes only
+  const filteredIds = new Set(filteredHomes.map(h => h.listing_id))
+  const filteredRanked = rankedHomes.filter(h => filteredIds.has(h.listing_id))
 
   return {
-    homes,                                          // map markers (city only)
-    rankedHomes: cityRankedHomes.slice(0, homeCount), // sidebar list (top N in city)
-    allRankedHomes: cityRankedHomes,                // map colors (all ranked in city)
-    weights,
-    updateWeight,
-    activeId,
-    setActiveId,
+    homes:            filteredHomes,                        // map markers
+    rankedHomes:      filteredRanked.slice(0, homeCount),   // sidebar list (top N)
+    allRankedHomes:   filteredRanked,                       // map colors (all in region)
+    weights,          updateWeight,
+    activeId,         setActiveId,
     loading,
-    region,
-    updateRegion,
-    homeCount,
-    updateHomeCount,
+    region,           updateRegion,
+    homeCount,        updateHomeCount,
+    filters,          updateFilter,    resetFilters,
+    propertyTypes,
     regionCenter: (REGIONS[region] ?? REGIONS['Irvine, CA']).center,
   }
 }
