@@ -20,17 +20,17 @@ function WeightSlider({ meta, value, onChange }) {
   const weightKey = meta.key.replace('_score', '')
 
   return (
-    <div className="mb-7">
+    <div className="mb-4 border-2 border-[#11472f] rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full" style={{ background: meta.color }} />
-          <span className="text-sm font-semibold tracking-wide">{meta.label}</span>
+          <span className="text-base font-semibold tracking-wide">{meta.label}</span>
         </div>
         <span className="font-mono text-sm font-medium" style={{ color: meta.color }}>
           {value.toFixed(2)}
         </span>
       </div>
-      <p className="text-xs text-muted mb-2 leading-relaxed">{descriptions[weightKey]}</p>
+      <p className="text-sm text-muted mb-2 leading-relaxed">{descriptions[weightKey]}</p>
       <input
         type="range"
         min={0} max={1} step={0.01}

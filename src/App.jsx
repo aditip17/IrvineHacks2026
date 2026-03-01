@@ -8,18 +8,25 @@ function Header({ homeCount }) {
   return (
     <header className="col-span-3 flex items-center gap-4 px-6 bg-surface border-b border-border z-10">
       <div className="text-lg font-extrabold tracking-tight font-syne">
-        Home<span className="text-accent">Score</span>
+        Neighborhood<span className="text-accent">Fit</span>
       </div>
-      <div className="font-mono text-[10px] text-muted bg-surface2 border border-border px-2 py-1 rounded">
-        SPATIAL INTELLIGENCE v1.0
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs text-muted">Region:</span>
+        <select className="font-mono text-xs text-accent bg-surface2 border border-border px-3 py-1 rounded-full">
+          <option>Irvine, CA</option>
+          <option>Newport Beach, CA</option>
+          <option>Santa Ana, CA</option>
+          <option>Anaheim, CA</option>
+        </select>
       </div>
-      <div className="ml-auto flex items-center gap-2.5">
-        <div className="font-mono text-xs text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
-          Region: <b className="text-accent">Irvine, CA</b>
-        </div>
-        <div className="font-mono text-xs text-muted bg-surface2 border border-border px-3 py-1 rounded-full">
-          Homes: <b className="text-accent">{homeCount || '—'}</b>
-        </div>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs text-muted">Homes:</span>
+        <select className="font-mono text-xs text-accent bg-surface2 border border-border px-3 py-1 rounded-full">
+          <option>10</option>
+          <option>25</option>
+          <option>50</option>
+          <option>100</option>
+        </select>
       </div>
     </header>
   )

@@ -5,9 +5,9 @@
 @layer base {
   html, body, #root {
     height: 100%;
-    background: #0b0e14;
-    color: #e8ecf4;
-    font-family: 'Syne', sans-serif;
+    background: #ffffff;
+    color: #11472f;
+    font-family: 'Comfortaa', sans-serif;
     overflow: hidden;
   }
 }
