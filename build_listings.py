@@ -94,6 +94,8 @@ def ensure_tables(conn: sqlite3.Connection) -> None:
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS {LISTING_FEATURES_TABLE} (
         listing_id INTEGER PRIMARY KEY,
+        lat REAL NOT NULL,
+        lon REAL NOT NULL,
         neighbor_count INTEGER NOT NULL,
         radius_used_km REAL NOT NULL,
         neighbor_home_ids TEXT, -- JSON list for debugging
@@ -286,9 +288,11 @@ def compute_features_for_listing(conn: sqlite3.Connection, lat: float, lon: floa
 
 
 def upsert_listing_features(conn: sqlite3.Connection, listing_id: int, feat: Dict) -> None:
-    cols = ["listing_id", "neighbor_count", "radius_used_km", "neighbor_home_ids"] + FEATURE_COLS
+    cols = ["listing_id", "lat", "lon", "neighbor_count", "radius_used_km", "neighbor_home_ids"] + FEATURE_COLS
     values = [
         listing_id,
+        feat["lat"],
+        feat["lon"],
         feat["neighbor_count"],
         feat["radius_used_km"],
         feat["neighbor_home_ids"],
@@ -329,6 +333,8 @@ def main():
             lon = float(row.longitude)
 
             feat = compute_features_for_listing(conn, lat, lon)
+            feat["lat"] = lat
+            feat["lon"] = lon
             upsert_listing_features(conn, listing_id, feat)
 
         print(f"Inserted {len(listing_ids)} listings and computed features for all of them.")
