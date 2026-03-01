@@ -3,10 +3,11 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-DB_PATH = "neighborhoodfit.db"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+DB_PATH = BACKEND_DIR / "data" / "neighborhoodfit.db"
 TABLE = "home_features"
 
-DATA_DIR = Path("processed_data")
+DATA_DIR = BACKEND_DIR.parent / "data" / "processed"
 PATHS = {
     "homes": DATA_DIR / "homes.geojson",
     "roads": DATA_DIR / "roads.geojson",

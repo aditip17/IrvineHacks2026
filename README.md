@@ -1,50 +1,52 @@
-# HomeScore — Frontend
+# IrvineHacks2026
 
-React + Vite + Tailwind + Mapbox GL JS
+Organized as separate frontend and backend apps with shared project-level data.
 
-## Setup
+## Structure
+
+```text
+.
+|-- frontend/              # React + Vite UI
+|   |-- src/
+|   |-- index.html
+|   `-- package.json
+|-- backend/
+|   |-- api/
+|   |   `-- main.py        # FastAPI app
+|   |-- scripts/           # Data prep / DB build scripts
+|   |-- data/
+|   |   `-- neighborhoodfit.db
+|   `-- requirements.txt
+|-- data/
+|   |-- raw/               # Input datasets (csv/geojson)
+|   `-- processed/         # Processed geo layers
+`-- README.md
+```
+
+## Run Frontend
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Frontend runs on `http://localhost:5173`.
 
-## Project Structure
+## Run Backend
 
-```
-src/
-├── main.jsx              # Entry point
-├── App.jsx               # Root layout + header
-├── index.css             # Tailwind + global styles (slider thumbs, Mapbox popup)
-├── constants.js          # Token, mock data, shared helpers (scoreColor, computeLocalRank)
-├── api.js                # fetchHomes() + fetchRankedHomes() — falls back to local scoring if backend is down
-├── hooks/
-│   └── useScoring.js     # All state: homes, rankedHomes, weights, activeId. Debounces re-ranking at 120ms.
-└── components/
-    ├── SliderPanel.jsx   # Left panel — 4 weight sliders + top result preview
-    ├── MapView.jsx       # Center — Mapbox map, markers, popups, fly-to
-    └── HomeList.jsx      # Right panel — ranked home cards with mini score bars
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.api.main:app --reload --port 8000
 ```
 
-## Connecting to the Backend
+Backend runs on `http://localhost:8000`.
 
-The API base URL is in `src/constants.js`:
+## Common Data Scripts
 
-```js
-export const API_BASE = 'http://localhost:8000'
-```
-
-- `GET /homes` → returns array of home objects
-- `POST /score` with body `{ w_quiet, w_green, w_activity, w_light }` → returns sorted array with `fit_score`
-
-If either endpoint is unreachable, the app automatically falls back to mock data and local scoring so the UI stays functional during development.
-
-## Changing the Mapbox Token
-
-Also in `src/constants.js`:
-
-```js
-export const MAPBOX_TOKEN = 'pk.eyJ1...'
+```bash
+python backend/scripts/initialize_database.py
+python backend/scripts/prepare_spatial_layers.py
+python backend/scripts/build_database.py
+python backend/scripts/build_listings.py data/raw/redfin_OC_data.csv
 ```

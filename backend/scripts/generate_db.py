@@ -1,8 +1,10 @@
 import sqlite3
 import pandas as pd
+from pathlib import Path
 
 # --- Fake DB (run once to generate homes.db) ---
-conn = sqlite3.connect("homes.db")
+db_path = Path(__file__).resolve().parents[1] / "data" / "homes.db"
+conn = sqlite3.connect(db_path)
 pd.DataFrame({
     "home_id": range(1, 11),
     "lat": [33.68 + i*0.01 for i in range(10)],

@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path 
 from typing import List, Tuple
 
-DB_PATH = "neighborhoodfit.db"
+DB_PATH = Path(__file__).resolve().parents[1] / "data" / "neighborhoodfit.db"
 TABLE_NAME = "home_features"
 
 COLUMNS: List[Tuple[str, str]] = [

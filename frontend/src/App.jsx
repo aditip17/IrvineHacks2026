@@ -4,7 +4,19 @@ import MapView     from './components/MapView'
 import HomeList    from './components/HomeList'
 import { useScoring } from './hooks/useScoring'
 
-function Header({ homeCount }) {
+const REGIONS = [
+  'Irvine',
+  'Newport Beach',
+  'Santa Ana',
+  'Anaheim',
+  'Fullerton',
+  'Garden Grove',
+  'Huntington Beach',
+  'Lake Forest',
+  'Orange',
+]
+
+function Header({ homeCount, region, setRegion }) {
   return (
     <header className="col-span-3 flex items-center gap-4 px-6 bg-surface border-b border-border z-10">
       <div className="text-lg font-extrabold tracking-tight font-syne">
@@ -12,26 +24,21 @@ function Header({ homeCount }) {
       </div>
       <div className="flex items-center gap-2">
         <span className="font-mono text-xs text-muted">Region:</span>
-        <select className="font-mono text-xs text-accent bg-surface2 border border-border px-3 py-1 rounded-full">
-          <option>Irvine, CA</option>
-          <option>Newport Beach, CA</option>
-          <option>Santa Ana, CA</option>
-          <option>Anaheim, CA</option>
-          <option>Fullerton, CA</option>
-          <option>Garden Grove, CA</option>
-          <option>Hunington, CA</option>
-          <option>Lake Forest, CA</option>
-          <option>Orange, CA</option>
+        <select
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          className="font-mono text-xs text-accent bg-surface2 border border-border px-3 py-1 rounded-full"
+        >
+          {REGIONS.map((name) => (
+            <option key={name} value={name}>{name}, CA</option>
+          ))}
         </select>
       </div>
       <div className="flex items-center gap-2">
         <span className="font-mono text-xs text-muted">Homes:</span>
-        <select className="font-mono text-xs text-accent bg-surface2 border border-border px-3 py-1 rounded-full">
-          <option>10</option>
-          <option>25</option>
-          <option>50</option>
-          <option>100</option>
-        </select>
+        <span className="font-mono text-xs text-accent bg-surface2 border border-border px-3 py-1 rounded-full">
+          {homeCount}
+        </span>
       </div>
     </header>
   )
@@ -46,6 +53,8 @@ export default function App() {
     activeId,
     setActiveId,
     loading,
+    region,
+    setRegion,
   } = useScoring()
 
   return (
@@ -53,7 +62,7 @@ export default function App() {
       className="grid h-screen"
       style={{ gridTemplateColumns: '300px 1fr 320px', gridTemplateRows: '56px 1fr' }}
     >
-      <Header homeCount={homes.length} />
+      <Header homeCount={homes.length} region={region} setRegion={setRegion} />
 
       <SliderPanel
         weights={weights}

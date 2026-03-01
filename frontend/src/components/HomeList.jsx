@@ -55,7 +55,7 @@ function HomeCard({ home, rank, isActive, onClick }) {
         <span className={`font-mono text-[10px] font-medium min-w-[24px] ${rank <= 3 ? 'text-accent' : 'text-muted'}`}>
           #{rank}
         </span>
-        <span className="text-base font-bold flex-1">{home.address ?? `Home ${home.listing_id}`}</span>
+        <span className="text-base font-bold flex-1">{home.address ?? `Home ${home.home_id}`}</span>
         <span className="font-mono text-sm font-medium" style={{ color: fitColor }}>
           {((home.fit_score ?? 0)*100).toFixed(1)}%
         </span>
@@ -95,11 +95,11 @@ export default function HomeList({ rankedHomes, activeId, setActiveId, loading }
         ) : (
           rankedHomes.map((home, i) => (
             <HomeCard
-              key={home.listing_id}
+              key={home.home_id}
               home={home}
               rank={i + 1}
-              isActive={activeId === home.listing_id}
-              onClick={() => setActiveId(home.listing_id)}
+              isActive={activeId === home.home_id}
+              onClick={() => setActiveId(home.home_id)}
             />
           ))
         )}

@@ -1,7 +1,8 @@
 import {API_BASE} from "./constants";
 
-export async function fetchHomes(){
-  const res=await fetch(`${API_BASE}/homes`);
+export async function fetchHomes(city){
+  const q = city ? `?city=${encodeURIComponent(city)}` : "";
+  const res=await fetch(`${API_BASE}/homes${q}`);
   if(!res.ok){
     const text=await res.text();
     throw new Error(`GET /homes failed (${res.status}): ${text}`);
@@ -9,8 +10,9 @@ export async function fetchHomes(){
   return res.json();
 }
 
-export async function fetchRankedHomes(_homes,quiet,green,activity,light){
-  const res=await fetch(`${API_BASE}/score`,{
+export async function fetchRankedHomes(_homes,quiet,green,activity,light,city){
+  const q = city ? `?city=${encodeURIComponent(city)}` : "";
+  const res=await fetch(`${API_BASE}/score${q}`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({

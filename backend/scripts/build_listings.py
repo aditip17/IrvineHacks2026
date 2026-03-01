@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
-DB_PATH = "neighborhoodfit.db"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+DB_PATH = BACKEND_DIR / "data" / "neighborhoodfit.db"
 
 HOME_TABLE = "home_features"         
 LISTINGS_TABLE = "listings"
@@ -312,7 +313,10 @@ def upsert_listing_features(conn: sqlite3.Connection, listing_id: int, feat: Dic
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python build_listing_features.py redfin_OC_data.csv")
+        print(
+            "Usage: python backend/scripts/build_listings.py "
+            "data/raw/redfin_OC_data.csv"
+        )
         sys.exit(1)
 
     csv_path = sys.argv[1]

@@ -4,17 +4,19 @@ import geopandas as gpd
 import osmnx as ox
 import numpy as np
 from shapely.geometry import Point
+from pathlib import Path
 
 # =========================
 # 1️⃣ Setup output folder
 # =========================
-output_folder = "processed_data"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+output_folder = REPO_ROOT / "data" / "processed"
 os.makedirs(output_folder, exist_ok=True)  # create if doesn't exist
 
 # =========================
 # 2️⃣ Merge city GeoJSONs into homes
 # =========================
-city_folder = "city_data"
+city_folder = REPO_ROOT / "data" / "raw"
 geojson_files = [
     os.path.join(city_folder, f) 
     for f in os.listdir(city_folder) 

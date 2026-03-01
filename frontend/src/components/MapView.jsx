@@ -1,70 +1,94 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { MAPBOX_TOKEN, scoreColor } from '../constants'
+import { MAPBOX_TOKEN } from '../constants'
 
 mapboxgl.accessToken = MAPBOX_TOKEN
 
 function buildPopupHTML(home, rank) {
+  const fmt = (value, digits = 2) =>
+    typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) : '-'
+
   const rows = [
-    ['Fit Score',      home.fit_score?.toFixed(3) ?? '—'],
-    ['Quiet',          home.quiet_score.toFixed(2)],
-    ['Green',          home.green_score.toFixed(2)],
-    ['Activity',       home.activity_score.toFixed(2)],
-    ['Light',          home.light_score.toFixed(2)],
-    ['POIs (500m)',    home.poi_count_500m],
+    ['Fit Score', fmt(home.fit_score, 3)],
+    ['Quiet', fmt(home.quiet_score)],
+    ['Green', fmt(home.green_score)],
+    ['Activity', fmt(home.activity_score)],
+    ['Light', fmt(home.light_score)],
+    ['POIs (500m)', fmt(home.poi_count_500m, 2)],
   ]
+
   return `
     <div style="font-family:'Syne',sans-serif">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#e8ecf4">
         Home #${home.home_id} <span style="font-size:11px;color:#5b6278;font-weight:400">· Rank #${rank}</span>
       </div>
-      ${rows.map(([l, v]) => `
+      ${rows
+        .map(
+          ([label, value]) => `
         <div style="display:flex;justify-content:space-between;font-size:11px;color:#5b6278;margin-bottom:4px">
-          <span>${l}</span>
-          <span style="font-family:'JetBrains Mono',monospace;color:#e8ecf4">${v}</span>
-        </div>`).join('')}
+          <span>${label}</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:#e8ecf4">${value}</span>
+        </div>`
+        )
+        .join('')}
     </div>
   `
 }
 
 export default function MapView({ homes, rankedHomes, activeId, setActiveId }) {
   const mapContainerRef = useRef(null)
-  const mapRef          = useRef(null)
-  const markersRef      = useRef({})   // home_id → { marker, el }
-  const popupRef        = useRef(null)
-  const initialFitDone  = useRef(false)
+  const mapRef = useRef(null)
+  const markersRef = useRef({})
+  const allMarkersRef = useRef([])
+  const popupRef = useRef(null)
+  const initialFitDone = useRef(false)
+  const rankedHomesRef = useRef(rankedHomes)
+  const hideHoverOverlays = () => {
+    Object.values(markersRef.current).forEach(({ rankEl }) => {
+      rankEl.style.opacity = '0'
+    })
+    popupRef.current?.remove()
+  }
 
-  // Init map once
+  useEffect(() => {
+    rankedHomesRef.current = rankedHomes
+  }, [rankedHomes])
+
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-117.800, 33.680],
+      center: [-117.8, 33.68],
       zoom: 12.5,
       attributionControl: false,
     })
+
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left')
     popupRef.current = new mapboxgl.Popup({ closeButton: false, offset: 14 })
+    map.on('movestart', hideHoverOverlays)
     mapRef.current = map
 
-    return () => map.remove()
+    return () => {
+      map.off('movestart', hideHoverOverlays)
+      map.remove()
+    }
   }, [])
 
-  // Build markers when homes arrive
   useEffect(() => {
     if (!mapRef.current || homes.length === 0) return
 
     const map = mapRef.current
-
     const addMarkers = () => {
-      // Clear old markers
-      Object.values(markersRef.current).forEach(({ marker }) => marker.remove())
+      popupRef.current?.remove()
+      allMarkersRef.current.forEach((marker) => marker.remove())
+      allMarkersRef.current = []
       markersRef.current = {}
 
-      homes.forEach(home => {
+      homes.forEach((home) => {
         const el = document.createElement('div')
         el.style.cssText = 'position:relative;cursor:pointer'
+        let marker = null
 
         const rankEl = document.createElement('div')
         rankEl.id = `mrank-${home.home_id}`
@@ -75,7 +99,7 @@ export default function MapView({ homes, rankedHomes, activeId, setActiveId }) {
           padding:1px 4px;color:#4fffb0;white-space:nowrap;
           opacity:0;transition:opacity 0.2s;pointer-events:none;
         `
-        rankEl.textContent = '#—'
+        rankEl.textContent = '#-'
 
         const dot = document.createElement('div')
         dot.id = `mdot-${home.home_id}`
@@ -89,37 +113,41 @@ export default function MapView({ homes, rankedHomes, activeId, setActiveId }) {
         el.appendChild(dot)
 
         el.addEventListener('mouseenter', () => {
+          hideHoverOverlays()
           rankEl.style.opacity = '1'
           const ranked = rankedHomesRef.current
-          const entry  = ranked.find(r => r.home_id === home.home_id)
-          const rank   = ranked.indexOf(entry) + 1
-          if (entry) {
-            popupRef.current
-              .setLngLat([home.lon, home.lat])
-              .setHTML(buildPopupHTML(entry, rank))
-              .addTo(map)
-          }
+          const entry = ranked.find((row) => row.home_id === home.home_id)
+          const rank = entry ? ranked.indexOf(entry) + 1 : '-'
+          const lngLat = marker ? marker.getLngLat() : { lng: home.lon, lat: home.lat }
+          popupRef.current
+            .setLngLat([lngLat.lng, lngLat.lat])
+            .setHTML(buildPopupHTML(entry ?? home, rank))
+            .addTo(map)
         })
+
         el.addEventListener('mouseleave', () => {
           rankEl.style.opacity = '0'
-          popupRef.current.remove()
+          popupRef.current?.remove()
         })
+
         el.addEventListener('click', () => setActiveId(home.home_id))
 
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat([home.lon, home.lat])
           .addTo(map)
 
-        markersRef.current[home.home_id] = { marker, el, dot, rankEl }
+        allMarkersRef.current.push(marker)
+        markersRef.current[home.home_id] = { marker, dot, rankEl }
       })
 
-      // Fit bounds once
       if (!initialFitDone.current && homes.length > 1) {
-        const lons = homes.map(h => h.lon)
-        const lats = homes.map(h => h.lat)
+        const lons = homes.map((h) => h.lon)
+        const lats = homes.map((h) => h.lat)
         map.fitBounds(
-          [[Math.min(...lons) - 0.01, Math.min(...lats) - 0.01],
-           [Math.max(...lons) + 0.01, Math.max(...lats) + 0.01]],
+          [
+            [Math.min(...lons) - 0.01, Math.min(...lats) - 0.01],
+            [Math.max(...lons) + 0.01, Math.max(...lats) + 0.01],
+          ],
           { padding: 60, duration: 1000 }
         )
         initialFitDone.current = true
@@ -127,35 +155,28 @@ export default function MapView({ homes, rankedHomes, activeId, setActiveId }) {
     }
 
     if (map.isStyleLoaded()) addMarkers()
-    else map.on('load', addMarkers)
+    else map.once('load', addMarkers)
   }, [homes, setActiveId])
 
-  // Keep a ref to rankedHomes so popup handler can access latest without re-adding listeners
-  const rankedHomesRef = useRef(rankedHomes)
-  useEffect(() => { rankedHomesRef.current = rankedHomes }, [rankedHomes])
-
-  // Update marker colors & ranks when ranking changes
   useEffect(() => {
     rankedHomes.forEach((home, i) => {
       const entry = markersRef.current[home.home_id]
       if (!entry) return
       const { dot, rankEl } = entry
-      const color = scoreColor(home.fit_score ?? 0)
-      const size  = i < 3 ? '20px' : '14px'
+      const size = i < 3 ? '20px' : '14px'
       dot.style.background = '#11472f'
       dot.style.border = '3px solid #ffffff'
       dot.style.boxShadow = '0 0 0 2px #11472f'
-      dot.style.width       = size
-      dot.style.height      = size
-      rankEl.textContent    = `#${i + 1}`
+      dot.style.width = size
+      dot.style.height = size
+      rankEl.textContent = `#${i + 1}`
     })
   }, [rankedHomes])
 
-  // Fly to active home & highlight its marker
   useEffect(() => {
     if (activeId === null || !mapRef.current) return
 
-    const home = homes.find(h => h.home_id === activeId)
+    const home = homes.find((h) => h.home_id === activeId)
     if (home) {
       mapRef.current.flyTo({
         center: [home.lon, home.lat],
@@ -164,9 +185,8 @@ export default function MapView({ homes, rankedHomes, activeId, setActiveId }) {
       })
     }
 
-    // Visual highlight
     Object.entries(markersRef.current).forEach(([id, { dot }]) => {
-      const isActive = parseInt(id) === activeId
+      const isActive = Number(id) === Number(activeId)
       dot.style.transform = isActive ? 'scale(1.6)' : 'scale(1)'
       dot.style.boxShadow = isActive ? `0 0 12px ${dot.style.background}` : 'none'
     })
@@ -176,7 +196,6 @@ export default function MapView({ homes, rankedHomes, activeId, setActiveId }) {
     <main className="relative overflow-hidden">
       <div ref={mapContainerRef} className="w-full h-full" />
 
-      {/* Overlay badge */}
       <div className="absolute top-4 left-4 bg-bg/80 backdrop-blur border border-border rounded-lg px-3 py-2 pointer-events-none">
         <span className="font-mono text-xs text-muted">
           Ranked: <b className="text-accent">{rankedHomes.length}</b> homes
