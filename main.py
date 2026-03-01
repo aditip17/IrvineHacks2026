@@ -20,6 +20,8 @@ DB_PATH = Path(__file__).with_name("neighborhoodfit.db")
 
 REQUIRED_COLS = [
     "listing_id",
+    "lat",
+    "lon",
     "dist_to_freeway",
     "dist_to_major_road",
     "dist_to_park",
@@ -67,6 +69,8 @@ def get_df() -> pd.DataFrame:
 
         # Coerce numeric columns (SQLite sometimes returns strings)
         num_cols = [
+            "lat",
+            "lon",
             "dist_to_freeway",
             "dist_to_major_road",
             "dist_to_park",
@@ -80,7 +84,11 @@ def get_df() -> pd.DataFrame:
         for c in opt_num_cols:
             if c in df.columns:
                 df[c] = pd.to_numeric(df[c], errors="coerce")
+        # Remove rows without valid coordinates (map needs these)
+        df = df.dropna(subset=["lat","lon"])
 
+        # Optional: enforce valid ranges
+        df = df[(df["lat"].between(-90,90)) & (df["lon"].between(-180,180))]
         # Fill missing values to prevent NaN scores
         # - poi_count: missing -> 0 (no POIs)
         df["poi_count_500m"] = df["poi_count_500m"].fillna(0)
