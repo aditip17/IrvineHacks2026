@@ -1,50 +1,169 @@
-# HomeScore — Frontend
+# NeighborhoodFit
 
-React + Vite + Tailwind + Mapbox GL JS
+NeighborhoodFit is a location-based web application that helps users evaluate neighborhoods using housing data, infrastructure layers, and geospatial analysis. It provides an interactive way to explore livability factors such as parks, roads, industrial zones, lighting, and nearby amenities.
 
-## Setup
+## Overview
 
-```bash
-npm install
-npm run dev
-```
+NeighborhoodFit allows users to:
 
-Open http://localhost:5173
+- View neighborhoods on an interactive map  
+- Browse housing listings by city  
+- Analyze nearby parks and amenities  
+- Visualize zoning and industrial areas  
+- Explore infrastructure layers like roads and lighting  
+- Compare different cities within Orange County  
+
+The platform integrates processed spatial data with a modern React frontend to create a dynamic and intuitive experience.
+
+## Tech Stack
+
+### Frontend
+- React (Vite)
+- Tailwind CSS
+- JavaScript (ES6+)
+- GeoJSON rendering
+
+### Backend
+- Python
+- SQLite
+- Data processing scripts
+- GeoJSON spatial layers
+- FASTAPI
+
+### Data Sources
+- Redfin housing data
+- City boundary GeoJSON files
+- Processed infrastructure layers (parks, roads, industrial zones, lighting, POIs)
 
 ## Project Structure
 
 ```
-src/
-├── main.jsx              # Entry point
-├── App.jsx               # Root layout + header
-├── index.css             # Tailwind + global styles (slider thumbs, Mapbox popup)
-├── constants.js          # Token, mock data, shared helpers (scoreColor, computeLocalRank)
-├── api.js                # fetchHomes() + fetchRankedHomes() — falls back to local scoring if backend is down
-├── hooks/
-│   └── useScoring.js     # All state: homes, rankedHomes, weights, activeId. Debounces re-ranking at 120ms.
-└── components/
-    ├── SliderPanel.jsx   # Left panel — 4 weight sliders + top result preview
-    ├── MapView.jsx       # Center — Mapbox map, markers, popups, fly-to
-    └── HomeList.jsx      # Right panel — ranked home cards with mini score bars
+NeighborhoodFit/
+│
+├── src/
+│   ├── components/
+│   │   ├── HomeList.jsx
+│   │   ├── MapView.jsx
+│   │   └── SliderPanel.jsx
+│   ├── App.jsx
+│   ├── api.js
+│   ├── constants.js
+│   └── main.jsx
+│
+├── city_data/                     # Raw city GeoJSON files
+├── processed_data/                # Cleaned spatial layers
+├── build_database.py              # Builds core database tables
+├── build_listings.py              # Processes and inserts housing listings
+├── generate_db.py                 # Generates final database file
+├── initialize_database.py         # Initializes SQLite schema
+├── prepare_spatial_layers.py      # Processes GeoJSON layers
+├── main.py                        # Backend entry point
+├── redfin_OC_data.csv             # Raw housing dataset
+├── package.json                   # Frontend dependencies
+├── tailwind.config.js             # Tailwind configuration
+└── vite.config.js                 # Vite configuration
 ```
+## Local Development Setup
 
-## Connecting to the Backend
+### 1️⃣ Clone the Repository
 
-The API base URL is in `src/constants.js`:
+git clone https://github.com/aditip17/IrvineHacks2026.git
 
-```js
-export const API_BASE = 'http://localhost:8000'
-```
+cd IrvineHacks2026
 
-- `GET /homes` → returns array of home objects
-- `POST /score` with body `{ w_quiet, w_green, w_activity, w_light }` → returns sorted array with `fit_score`
+### 2️⃣ Backend Setup (Python + SQLite)
 
-If either endpoint is unreachable, the app automatically falls back to mock data and local scoring so the UI stays functional during development.
+#### Create virtual environment:
 
-## Changing the Mapbox Token
+python3 -m venv venv
 
-Also in `src/constants.js`:
+source venv/bin/activate   # macOS/Linux
 
-```js
-export const MAPBOX_TOKEN = 'pk.eyJ1...'
-```
+#### Install dependencies:
+
+pip install -r requirements.txt
+
+#### Initialize database:
+
+python initialize_database.py
+
+python build_database.py
+
+python build_listings.py redfin_OC_data.csv
+
+#### Run backend:
+
+python -m uvicorn main:app --reload --port 8000
+
+### 3️⃣ Frontend Setup (React + Vite)
+
+#### Install dependencies:
+
+npm install
+
+#### Run development server:
+
+npm run dev
+
+#### Frontend runs locally at:
+
+http://localhost:5173
+
+## Deployment
+### Frontend (Vercel)
+
+The React frontend is deployed on Vercel.
+
+Live URL:
+<br>
+
+### Backend (Render)
+
+The Python backend is deployed on Render.
+
+API Base URL:
+<br>
+
+### Deployment Architecture
+
+- Frontend hosted on Vercel
+
+- Backend API hosted on Render
+
+- Frontend communicates with backend via REST API
+
+- SQLite database initialized during deployment or build phase
+
+## Supported Cities
+
+- Anaheim
+
+- Fullerton
+
+- Garden Grove
+
+- Huntington Beach
+
+- Irvine
+
+- Lake Forest
+
+- Newport Beach
+
+- Orange
+
+## Future Improvements
+
+- Neighborhood Fit scoring algorithm
+
+- User preference weighting system
+
+- Saved neighborhoods & authentication
+
+- Real-time housing API integration
+
+- Cloud database migration (PostgreSQL)
+
+## Contributors
+
+Built for IrvineHacks 2026.
