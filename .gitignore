@@ -1,3 +1,4 @@
+
 # Node
 node_modules/
 dist/
@@ -38,3 +39,12 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+*.db
+
+
+# macOS
+.DS_Store
+
+# Temporary / cache files
+cache/
