@@ -1,50 +1,14 @@
-
-# Node
-node_modules/
-dist/
-dist-ssr/
-.npm
-
-# Vite
-*.local
-.vite/
-
-# Python / venv
-venv/
-.venv/
-env/
-.env/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.egg-info/
-dist/
-build/
-.eggs/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
 *.db
-
+# venv
+venv/
 
 # macOS
 .DS_Store
 
+# VS Code settings
+.vscode/
+
 # Temporary / cache files
 cache/
+__pycache__/
