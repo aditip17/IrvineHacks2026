@@ -22,6 +22,7 @@ The platform integrates processed spatial data with a modern React frontend to c
 - Tailwind CSS
 - JavaScript (ES6+)
 - GeoJSON rendering
+- Mapbox GL JS
 
 ### Backend
 - Python
